@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedTriage — Clinical Decision Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#faf8f5;--surface:#ffffff;--surface2:#f5f2ee;
+  --border:rgba(0,0,0,0.08);--text:#1a1714;--muted:#8a8178;
+  --accent:#c8622a;--accent-dim:rgba(200,98,42,0.08);--accent-b:rgba(200,98,42,0.2);
+  --green:#2d7a4f;--green-dim:rgba(45,122,79,0.08);
+  --yellow:#9a6c00;--yellow-dim:rgba(154,108,0,0.1);
+  --orange:#c8622a;--orange-dim:rgba(200,98,42,0.08);
+  --red:#b93030;--red-dim:rgba(185,48,48,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-family:'Playfair Display',serif;font-weight:700}
+.logo-name{font-family:'Playfair Display',serif;font-weight:700;font-size:17px;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.live-badge{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green);background:var(--green-dim);border:1px solid rgba(45,122,79,0.2);padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.live-badge::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
+main{max-width:860px;margin:0 auto;padding:52px 24px 80px}
+.hero{margin-bottom:44px}
+.hero-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px}
+.divider{width:40px;height:2px;background:var(--accent);border-radius:2px;margin-bottom:14px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(28px,4.5vw,44px);font-weight:700;color:var(--text);line-height:1.15;margin-bottom:12px;letter-spacing:-0.5px}
+h1 em{font-style:italic;color:var(--accent)}
+.hero p{color:var(--muted);font-size:15px;max-width:460px;line-height:1.7}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:14px}
+.clabel{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.chip{padding:6px 13px;border-radius:6px;font-size:13px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.chip:hover{border-color:rgba(200,98,42,0.3);color:var(--text)}
+.chip.on{background:var(--accent-dim);border-color:var(--accent-b);color:var(--accent)}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:none;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent-b)}
+textarea::placeholder{color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.dlabel{font-size:13px;color:var(--muted)}
+input[type=number]{width:76px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+input[type=number]:focus{border-color:var(--accent-b)}
+.btn{margin-left:auto;padding:11px 26px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;border:none;border-radius:9px;cursor:pointer;transition:opacity .2s,transform .1s;display:flex;align-items:center;gap:8px}
+.btn:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:rgba(185,48,48,.06);border:1px solid rgba(185,48,48,.2);color:#b93030;border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:14px;display:none}
+#res{display:none}
+.banner{border-radius:14px;padding:24px 26px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:14px}
+.bil{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.bact{font-size:13px;color:var(--muted)}
+.bright{text-align:right}
+.bl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.bd{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-top:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+.pi{margin-bottom:12px}.pi:last-child{margin-bottom:0}
+.pr{display:flex;justify-content:space-between;margin-bottom:5px}
+.pn{font-size:13px;color:var(--text)}
+.pp{font-size:13px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.pt{height:4px;background:rgba(0,0,0,0.06);border-radius:10px;overflow:hidden}
+.pf{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.stags{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.stag{padding:4px 11px;border-radius:5px;font-size:12px;background:var(--accent-dim);border:1px solid var(--accent-b);color:var(--accent);font-family:'JetBrains Mono',monospace}
+.rp{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:8px}
+.disc{text-align:center;font-size:11px;color:var(--muted);padding:0 16px;line-height:1.6;margin-top:6px;font-family:'JetBrains Mono',monospace}
+.demo-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);cursor:pointer}
+.demo-row input{accent-color:var(--accent);cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">+</div>
+    <div><div class="logo-name">MedTriage</div><div class="logo-sub">Clinical Decision Support</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <label class="demo-row"><input type="checkbox" id="demoT" onchange="demo=this.checked"/> Demo mode</label>
+    <div class="live-badge">System Online</div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-kicker">Clinical AI · Triage Assistant</div>
+    <div class="divider"></div>
+    <h1>Intelligent<br/><em>Symptom Analysis</em></h1>
+    <p>Enter your symptoms in natural language. Our model identifies clinical patterns and returns a risk-stratified recommendation.</p>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Describe your symptoms</div>
+    <div class="chips" id="chips"></div>
+    <textarea id="txt" rows="4" placeholder="e.g. fever, severe headache and joint pain for 3 days…" oninput="onType()"></textarea>
+    <div class="row">
+      <span class="dlabel">Duration (days):</span>
+      <input type="number" id="dur" min="1" max="365" placeholder="—"/>
+      <button class="btn" id="abtn" onclick="analyze()" disabled>
+        <span id="blbl">Run Analysis</span>
+        <div class="spin" id="bspin"></div>
+      </button>
+    </div>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div id="res">
+    <div class="banner" id="banner">
+      <div>
+        <div class="bil" id="bil"></div>
+        <div class="bact" id="bact"></div>
+      </div>
+      <div class="bright">
+        <div class="bl">Primary Diagnosis</div>
+        <div class="bd" id="bdis"></div>
+      </div>
+    </div>
+    <div class="two">
+      <div class="card" style="margin-bottom:0">
+        <div class="clabel">Differential Diagnosis</div>
+        <div id="bars"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="clabel">Detected Symptoms · <span id="scnt">0</span> found</div>
+        <div class="stags" id="stags"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Clinical Recommendation</div>
+      <div id="rec"></div>
+    </div>
+    <p class="disc" id="disc"></p>
+  </div>
+</main>
+
+<script>
+const RC={low:{bg:'rgba(45,122,79,0.07)',border:'rgba(45,122,79,0.2)',color:'#2d7a4f'},moderate:{bg:'rgba(154,108,0,0.07)',border:'rgba(154,108,0,0.2)',color:'#9a6c00'},high:{bg:'rgba(200,98,42,0.07)',border:'rgba(200,98,42,0.2)',color:'#c8622a'},urgent:{bg:'rgba(185,48,48,0.07)',border:'rgba(185,48,48,0.2)',color:'#b93030'}};
+const BC={low:'#2d7a4f',moderate:'#9a6c00',high:'#c8622a',urgent:'#b93030'};
+let demo=false;
+
+const CHIPS=['Fever','Headache','Nausea','Vomiting','Fatigue','Cough','Sore throat','Body ache','Diarrhea','Shortness of breath','Chest pain','Dizziness','Rash','Chills','Joint pain','Runny nose'];
+const DEMO={detected_symptoms:['fever','severe_headache','joint_pain','rash','nausea'],triage:{risk_level:'high',risk_info:{label:'High Risk',icon:'⚑',action:'Urgent Medical Attention'},top_prediction:'Dengue Fever',predictions:[{disease:'Dengue Fever',probability_pct:68,risk_level:'high'},{disease:'Malaria',probability_pct:19,risk_level:'high'},{disease:'Viral Fever',probability_pct:9,risk_level:'moderate'},{disease:'Influenza',probability_pct:4,risk_level:'moderate'}],recommendation:"Your symptoms indicate a condition requiring prompt medical attention. Visit a clinic or urgent care facility today.\n\nNote for Dengue Fever: Avoid aspirin and ibuprofen. Use paracetamol only. Monitor for bleeding or persistent vomiting.",disclaimer:"This AI triage system is for informational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional."}};
+
+const active=new Set();
+const cw=document.getElementById('chips');
+CHIPS.forEach(l=>{
+  const b=document.createElement('button');b.className='chip';b.textContent=l;
+  b.onclick=()=>{active.has(l)?(active.delete(l),b.classList.remove('on')):(active.add(l),b.classList.add('on'));if(active.size)document.getElementById('txt').value=[...active].join(', ');upBtn()};
+  cw.appendChild(b);
+});
+
+function onType(){active.clear();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));upBtn()}
+function upBtn(){document.getElementById('abtn').disabled=!document.getElementById('txt').value.trim()}
+
+async function analyze(){
+  const text=document.getElementById('txt').value.trim(),dur=document.getElementById('dur').value;
+  if(!text)return;
+  load(true);document.getElementById('err').style.display='none';document.getElementById('res').style.display='none';
+  try{
+    let data;
+    if(demo){await new Promise(r=>setTimeout(r,1000));data=DEMO;}
+    else{
+      const r=await fetch('http://localhost:5000/api/triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,duration_days:dur?parseInt(dur):null})});
+      const j=await r.json();if(!r.ok)throw new Error(j.error||`Error ${r.status}`);data=j;
+    }
+    render(data);
+  }catch(e){
+    const eb=document.getElementById('err');
+    eb.textContent='Error: '+e.message+' — start Flask backend (python backend/app.py) or enable Demo mode.';
+    eb.style.display='block';
+  }finally{load(false);}
+}
+
+function render(data){
+  const t=data.triage,rl=t.risk_level,rs=RC[rl]||RC.moderate;
+  const bn=document.getElementById('banner');
+  bn.style.background=rs.bg;bn.style.border='1px solid '+rs.border;
+  document.getElementById('bil').innerHTML=`<span style="font-size:16px">${t.risk_info.icon}</span><span>${t.risk_info.label}</span>`;
+  const ba=document.getElementById('bact');ba.textContent='Recommended action: '+t.risk_info.action;ba.style.color=rs.color;
+  document.getElementById('bdis').textContent=t.top_prediction;
+  document.getElementById('bars').innerHTML=t.predictions.map(p=>`
+    <div class="pi">
+      <div class="pr"><span class="pn">${p.disease}</span><span class="pp" style="color:${BC[p.risk_level]||BC.moderate}">${p.probability_pct}%</span></div>
+      <div class="pt"><div class="pf" style="width:${p.probability_pct}%;background:${BC[p.risk_level]||BC.moderate}"></div></div>
+    </div>`).join('');
+  const sy=data.detected_symptoms||[];
+  document.getElementById('scnt').textContent=sy.length;
+  document.getElementById('stags').innerHTML=sy.map(s=>`<span class="stag">${s.replace(/_/g,' ')}</span>`).join('');
+  document.getElementById('rec').innerHTML=t.recommendation.split('\n\n').map(p=>`<p class="rp">${p}</p>`).join('');
+  document.getElementById('disc').textContent=t.disclaimer;
+  document.getElementById('res').style.display='block';
+  document.getElementById('res').scrollIntoView({behavior:'smooth'});
+}
+
+function load(on){
+  document.getElementById('blbl').textContent=on?'Analysing...':'Run Analysis';
+  document.getElementById('bspin').style.display=on?'block':'none';
+  document.getElementById('abtn').disabled=on;
+}
+document.getElementById('txt').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')analyze()});
+</script>
+</body>
+</html>
